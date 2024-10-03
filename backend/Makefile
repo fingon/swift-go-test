@@ -4,10 +4,13 @@
 # Copyright (c) 2024 Markus Stenberg
 #
 # Created:       Thu Oct  3 11:19:34 2024 mstenber
-# Last modified: Thu Oct  3 11:29:57 2024 mstenber
-# Edit time:     5 min
+# Last modified: Thu Oct  3 11:46:38 2024 mstenber
+# Edit time:     7 min
 #
 #
+
+# with 'macos' can also build for local dev
+TARGET=ios,iossimulator,macos
 
 dep:
 	go install golang.org/x/mobile/cmd/gomobile@latest
@@ -19,4 +22,4 @@ init:
 
 # After this, Backend.xcframework is created
 bind:
-	gomobile bind -target ios,iossimulator -o ../swift-go-test/Backend.xcframework
+	gomobile bind -target $(TARGET) -o ../swift-go-test/Backend.xcframework
