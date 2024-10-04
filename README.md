@@ -24,3 +24,7 @@ make bind  80.92s user 21.48s system 619% cpu 16.524 total
 mstenber@hana ~/projects/swift-go-test/backend>du -hs Backend.xcframework
  38M	Backend.xcframework
 ```
+
+# See also
+
+[Rust version](https://github.com/fingon/swift-rust-test)
