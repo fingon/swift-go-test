@@ -4,8 +4,8 @@
 # Copyright (c) 2024 Markus Stenberg
 #
 # Created:       Thu Oct  3 11:19:34 2024 mstenber
-# Last modified: Thu Oct  3 11:46:38 2024 mstenber
-# Edit time:     7 min
+# Last modified: Mon Oct  7 08:18:04 2024 mstenber
+# Edit time:     10 min
 #
 #
 
@@ -23,3 +23,6 @@ init:
 # After this, Backend.xcframework is created
 bind:
 	gomobile bind -target $(TARGET) -o ../swift-go-test/Backend.xcframework
+
+# Strip symbols
+# -ldflags="-s -w"
