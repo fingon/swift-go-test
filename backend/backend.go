@@ -4,48 +4,62 @@
  * Copyright (c) 2024 Markus Stenberg
  *
  * Created:       Thu Oct  3 11:13:06 2024 mstenber
- * Last modified: Thu Oct  3 12:02:23 2024 mstenber
- * Edit time:     10 min
+ * Last modified: Tue Nov 19 16:45:54 2024 mstenber
+ * Edit time:     28 min
  *
  */
 
 package backend
 
 import (
+	"context"
+	"fmt"
 	"io"
+	"log"
+	"net"
 	"net/http"
-	"time"
+
+	"fingon.iki.fi/swift-go-test/backend/proto"
+	"google.golang.org/grpc"
+
+	_ "golang.org/x/mobile/bind"
 )
 
-// Async result handler
-type ResultHandler interface {
-	Error(err string)
-	Result(s string)
+type server struct {
+	proto.UnimplementedFetcherServer
+}
+
+func (self *server) FetchURL(_ context.Context, in *proto.URLRequest) (*proto.URLReply, error) {
+	url := in.GetUrl()
+	log.Printf("Received: %v", url)
+
+	resp, err := http.Get(url)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+	sbody := string(body)
+	return &proto.URLReply{Content: &sbody}, nil
 }
 
 type Backend struct {
-	rh ResultHandler
+	server server
+	Port   int
 }
 
-func NewBackend(rh ResultHandler) *Backend {
-	return &Backend{rh}
-}
-
-func (self *Backend) FetchURL(url string) {
-	// Intentionally doing this in a goroutine to ensure it will go on
-	go func() {
-		time.Sleep(1 * time.Second)
-		resp, err := http.Get(url)
-		if err != nil {
-			self.rh.Error(err.Error())
-			return
-		}
-		defer resp.Body.Close()
-		body, err := io.ReadAll(resp.Body)
-		if err != nil {
-			self.rh.Error(err.Error())
-			return
-		}
-		self.rh.Result(string(body))
-	}()
+func NewBackend() *Backend {
+	port := 50051
+	be := &Backend{Port: port}
+	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", port))
+	if err != nil {
+		log.Fatal(err)
+	}
+	s := grpc.NewServer()
+	proto.RegisterFetcherServer(s, &be.server)
+	go s.Serve(lis)
+	return be
 }

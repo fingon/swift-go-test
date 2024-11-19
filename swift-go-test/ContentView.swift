@@ -6,21 +6,32 @@
 //
 
 import Backend
+import GRPC
+import NIOCore
+import NIOPosix
 import SwiftUI
 
-class ResultHandler: NSObject, BackendResultHandlerProtocol {
-    var view: ContentView
+struct GlobalBackend {
+    static let singleton = GlobalBackend()
+    let backend = BackendBackend()
+    var fetcher: FetcherAsyncClient
+    private init() {
+        // This is adapted from HelloWorldClient of grpc-swift examples
+        //
+        // Setup an `EventLoopGroup` for the connection to run on.
+        //
+        // See: https://github.com/apple/swift-nio#eventloops-and-eventloopgroups
+        let group = MultiThreadedEventLoopGroup(numberOfThreads: 1)
 
-    init(_ view: ContentView) {
-        self.view = view
-    }
+        // Configure the channel, we're not using TLS so the connection is `insecure`.
+        let channel = try! GRPCChannelPool.with(
+            target: .host("localhost", port: backend!.port),
+            transportSecurity: .plaintext,
+            eventLoopGroup: group
+        )
 
-    func error(_ err: String?) {
-        view.text = "Go error occurred: \(err!)"
-    }
-
-    func result(_ s: String?) {
-        view.text = "Go result: \(s!)"
+        // Provide the connection to the generated client.
+        fetcher = FetcherAsyncClient(channel: channel)
     }
 }
 
@@ -31,9 +42,23 @@ struct ContentView: View {
             Text(text)
             Button("Fetch something") {
                 print("Fetch started..")
-                let rh = ResultHandler(self)
-                let backend = BackendBackend(rh)
-                backend!.fetchURL("https://fingon.kapsi.fi")
+                Task {
+                    let fetcher = GlobalBackend.singleton.fetcher
+
+                    // Form the request with the name, if one was provided.
+                    let request = URLRequest.with {
+                        $0.url = "http://www.fingon.iki.fi"
+                    }
+
+                    do {
+                        let reply = try await fetcher.fetchURL(request)
+                        print("Fetcher received: \(reply.content)")
+                        self.text = reply.content
+
+                    } catch {
+                        print("Fetcher failed: \(error)")
+                    }
+                }
             }
         }
         .padding()
