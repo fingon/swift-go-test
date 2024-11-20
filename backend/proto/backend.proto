@@ -1,13 +1,16 @@
+syntax = "proto3";
+
 option go_package = "fingon.iki.fi/swift-go-test/backend/proto";
+
 
 service Fetcher {
   rpc FetchURL (URLRequest) returns (URLReply) {}
 }
 
 message URLRequest {
-  optional string url = 1;
+  string url = 1;
 }
 
 message URLReply {
-  optional string content = 1;
+  bytes content = 1;
 }

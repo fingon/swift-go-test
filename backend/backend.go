@@ -4,8 +4,8 @@
  * Copyright (c) 2024 Markus Stenberg
  *
  * Created:       Thu Oct  3 11:13:06 2024 mstenber
- * Last modified: Tue Nov 19 16:45:54 2024 mstenber
- * Edit time:     28 min
+ * Last modified: Wed Nov 20 09:07:42 2024 mstenber
+ * Edit time:     30 min
  *
  */
 
@@ -42,8 +42,7 @@ func (self *server) FetchURL(_ context.Context, in *proto.URLRequest) (*proto.UR
 	if err != nil {
 		return nil, err
 	}
-	sbody := string(body)
-	return &proto.URLReply{Content: &sbody}, nil
+	return &proto.URLReply{Content: body}, nil
 }
 
 type Backend struct {

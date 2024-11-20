@@ -53,7 +53,8 @@ struct ContentView: View {
                     do {
                         let reply = try await fetcher.fetchURL(request)
                         print("Fetcher received: \(reply.content)")
-                        self.text = reply.content
+                        let str = String(decoding: reply.content, as: UTF8.self)
+                        self.text = str
 
                     } catch {
                         print("Fetcher failed: \(error)")
